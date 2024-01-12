@@ -19,8 +19,6 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     private float colorFadeVelocity; 
     private float colorFadeAmount;
 
-    [Space]
-
     [Header("Functional")]
     [SerializeField] public string NodeName;
 
@@ -39,18 +37,18 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     [SerializeField] private GameObject NodeConnectionDot;
     [SerializeField] private GameObject fancyLine;
 
-    public static GraphNode SelectedNode;
+    [HideInInspector] public static GraphNode SelectedNode;
 
 
     //creating a doubly linked list to build the tree structure that will represent a graph (data structures galore right here)
-    public List<GraphNode> InputConnections;
-    public List<GraphNode> OutputConnections;
+    [HideInInspector] public List<GraphNode> InputConnections;
+    [HideInInspector] public List<GraphNode> OutputConnections;
 
 
-    public string InputShape;
-    public List<string> OutputShapes;
+    [HideInInspector] public string InputShape;
+    [HideInInspector] public List<string> OutputShapes;
 
-    public GameObject lineHolder; //to hold a new line when one is drawn
+    [HideInInspector] public GameObject lineHolder; //to hold a new line when one is drawn
 
 
     private Button MainButton;
@@ -65,7 +63,7 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     private bool dragging; //for dragging the node itelf with the mouse
     private bool draggingConnection; //for dragging a connection of the node
     private bool movedDuringDrag;
-    public bool editing;
+    [HideInInspector] public bool editing;
     private GameObject draggedConnectionFROM; //the origin of the new connection
     private GameObject draggedConnecitonTO; //this is more of a temp object for the button that's going to follow the mouse
 
@@ -73,16 +71,16 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     //Every. Possible. Node. Option.
     //I'm reusing this script for every single node variation. That means I need to have as many arguments for the keras layer api represented here as possible
-    public Size inputsize;
+    [HideInInspector] public Shape inputSize;
 
-    public int units;
-    public string activation;
-    public float dropout;
-    public Size kernelShape;
-    public Size strides;
-    public bool returnSequences;
-    public bool returnState; //maybe, MAYBE, I'll implement this for the alpha version
-    public float recurrentDropout;
+    [HideInInspector] public int units;
+    [HideInInspector] public string activation;
+    [HideInInspector] public float dropout;
+    [HideInInspector] public Size kernelShape;
+    [HideInInspector] public Size strides;
+    [HideInInspector] public bool returnSequences;
+    [HideInInspector] public bool returnState; //maybe, MAYBE, I'll implement this for the alpha version
+    [HideInInspector] public float recurrentDropout;
 
 
     void Awake() {
@@ -90,6 +88,8 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         clickStartPosition = Vector2.zero;
         dragging = false;
         editing = false;
+
+        initBlankOptions();
 
         foreach(GameObject c in NodeInputs)
             c.GetComponent<GraphConnector>().isInputNode = true;
@@ -222,6 +222,13 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         if(MouseInventory.HighlightedConnection != null && MouseInventory.HighlightedConnection != this)
             return MouseInventory.HighlightedConnection;
         return null;
+    }
+
+    private void initBlankOptions() 
+    {
+        //Let's assume we're not loading from a save file, since that's not in my time budget for this winter break
+        //initialize all of the options with default parameters
+        inputSize = new Shape(2);
     }
 
     public void Delete() {

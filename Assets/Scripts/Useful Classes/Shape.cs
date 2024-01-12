@@ -1,3 +1,6 @@
+using System;
+using System.Diagnostics;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 public class Shape

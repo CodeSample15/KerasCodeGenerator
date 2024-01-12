@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +12,7 @@ public class ScreenSpaceUI : MonoBehaviour
     [Header("Prefabs:")]
     [SerializeField] private List<GraphNode> possibleNodes; //possible nodes that can be added to the graph (basically all of the nodes that I've implemented so far)
     [SerializeField] private GameObject addNodeMenuButtonTemplate;
+    [SerializeField] private TextMeshProUGUI LabelText;
     [SerializeField] private GameObject checkBox;
     [SerializeField] private GameObject shapeInputField;
     [SerializeField] private GameObject textInput;
@@ -23,6 +25,7 @@ public class ScreenSpaceUI : MonoBehaviour
     [SerializeField] private GameObject worldSpaceUI;
     [SerializeField] private GameObject addNodeMenuListObject;
     [SerializeField] private GameObject OptionsMenu;
+    [SerializeField] private GameObject OptionsMenuSettingsGrid;
     [SerializeField] private TextMeshProUGUI OptionsMenuTitle;
 
 
@@ -31,6 +34,8 @@ public class ScreenSpaceUI : MonoBehaviour
 
     private bool showingAddNodeMenu; //so I don't have to do an ugly meno.getbool() line
     private GraphNode currentOptionsNode;
+    private GameObject[] nodeSettings;
+    private GameObject[] nodeSettingsMenuObjects;
 
     void Awake() 
     {
@@ -52,12 +57,33 @@ public class ScreenSpaceUI : MonoBehaviour
         currentOptionsNode = node;
 
         OptionsMenu.SetActive(true);
+        OptionsMenuTitle.SetText(node.NodeName);
 
-        //add all the settings to the menu (nightmare nightmare nightmare nightmare nightmare nightmare nightmare nightmare nightmare nightmare nightmare nightmare)
+        nodeSettings = new GameObject[node.NodeOptions.Length];
+        nodeSettingsMenuObjects = new GameObject[node.NodeOptions.Length*2];
+
+        //add all the settings to the menu
+        int counter = 0;
         foreach(string setting in node.NodeOptions) {
+            GameObject temp;
+
             switch(setting.ToLower()) 
             {
                 case "input size":
+                    //label
+                    temp = Instantiate(LabelText.gameObject);
+                    temp.transform.SetParent(OptionsMenuSettingsGrid.transform, false);
+                    temp.GetComponent<TextMeshProUGUI>().SetText("Input size:");
+                    nodeSettingsMenuObjects[counter*2] = temp;
+
+                    //setting
+                    temp = Instantiate(shapeInputField);
+                    temp.transform.SetParent(OptionsMenuSettingsGrid.transform, false);
+                    temp.GetComponent<SizeInputField>().init(2);
+                    temp.GetComponent<SizeInputField>().populate(node.inputSize);
+
+                    nodeSettings[counter] = temp;
+                    nodeSettingsMenuObjects[(counter*2)+1] = temp;
                     break;
 
                 case "units":
@@ -81,6 +107,8 @@ public class ScreenSpaceUI : MonoBehaviour
                 case "recurrent dropout":
                     break;
             }
+
+            counter++;
         }
     }
 
@@ -88,9 +116,55 @@ public class ScreenSpaceUI : MonoBehaviour
     {
         OptionsMenu.SetActive(false);
 
+        //Save all of the settings the user entered
+        saveCurrentNodeSettings();
+        clearOptionsFromMenu();
+
         currentOptionsNode.GetComponent<Image>().color = currentOptionsNode.NormalColor;
         currentOptionsNode.editing = false;
         currentOptionsNode = null;
+    }
+
+    private void clearOptionsFromMenu() 
+    {
+        foreach(GameObject obj in nodeSettingsMenuObjects)
+            Destroy(obj);
+    }
+
+    private void saveCurrentNodeSettings()
+    {
+        int counter = 0;
+        foreach(string setting in currentOptionsNode.NodeOptions) {
+            switch(setting.ToLower()) 
+            {
+                case "input size":
+                    currentOptionsNode.inputSize = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
+                    break;
+
+                case "units":
+                    break;
+
+                case "activation":
+                    break;
+
+                case "dropout":
+                    break;
+
+                case "kernel shape":
+                    break;
+
+                case "strides":
+                    break;
+
+                case "return sequences":
+                    break;
+
+                case "recurrent dropout":
+                    break;
+            }
+
+            counter++;
+        }
     }
 
     private void InitNodeAddMenu()

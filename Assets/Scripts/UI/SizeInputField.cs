@@ -3,19 +3,40 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SizeInputField : MonoBehaviour
 {
     public GameObject inputField; //prefab
-    private InputField[] inputFields;
+    private TMP_InputField[] inputFields;
 
     public void init(int size) {
-        inputFields = new InputField[size];
+        inputFields = new TMP_InputField[size];
 
         for(int i=0; i<size; i++) {
             GameObject temp = Instantiate(inputField);
-            temp.transform.SetParent(transform);
-            inputFields[i] = temp.GetComponent<InputField>();
+            temp.transform.SetParent(transform, false);
+            inputFields[i] = temp.GetComponent<TMP_InputField>();
+        }
+    }
+
+    public void populate(string[] values) 
+    {
+        if(values.Length != inputFields.Length)
+            return;
+
+        for(int i=0; i<values.Length; i++) {
+            inputFields[i].SetTextWithoutNotify(values[i]);
+        }
+    }
+
+    public void populate(Shape values) 
+    {
+        if(values.sizes.Length != inputFields.Length)
+            return;
+
+        for(int i=0; i<values.sizes.Length; i++) {
+            inputFields[i].SetTextWithoutNotify(values.sizes[i].ToString());
         }
     }
 
