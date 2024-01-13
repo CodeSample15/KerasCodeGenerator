@@ -9,6 +9,7 @@ public class GraphConnector : MonoBehaviour, IPointerDownHandler, IPointerUpHand
 {
     public string Shape;
     public string Name;
+    public int id;
 
     public bool TempConnector = false;
     public bool isInputNode;
@@ -17,6 +18,8 @@ public class GraphConnector : MonoBehaviour, IPointerDownHandler, IPointerUpHand
     private Button button;
     private bool pressed;
     private bool highlighted;
+
+    private FancyLine line;
 
     public bool Pressed {
         get { return pressed; }
@@ -34,8 +37,16 @@ public class GraphConnector : MonoBehaviour, IPointerDownHandler, IPointerUpHand
         pressed = false;
     }
 
+    public void addConnection(FancyLine line) {
+        if(this.line!=null)
+            Destroy(this.line.gameObject);
+
+        this.line = line;
+    }
+
     void Awake() {
         button = GetComponent<Button>();
+        id = -1;
     }
 
     void Update() {

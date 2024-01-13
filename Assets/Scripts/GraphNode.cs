@@ -11,7 +11,7 @@ using UnityEngine.UI;
 public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IComparable<GraphNode>
 {
     [Header("Cosmetic")]
-
+    
     [SerializeField] public Color32 NormalColor;
     [SerializeField] private Color32 SelectedColor;
     [SerializeField] private Color32 EditingColor;
@@ -41,8 +41,8 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
 
     //creating a doubly linked list to build the tree structure that will represent a graph (data structures galore right here)
-    [HideInInspector] public List<GraphNode> InputConnections;
-    [HideInInspector] public List<GraphNode> OutputConnections;
+    [HideInInspector] public GraphNode[] InputConnections;
+    [HideInInspector] public GraphNode[] OutputConnections;
 
 
     [HideInInspector] public string InputShape;
@@ -89,6 +89,9 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         dragging = false;
         editing = false;
 
+        InputConnections = new GraphNode[NodeInputs.Count];
+        OutputConnections = new GraphNode[NodeOutputs.Count];
+
         initBlankOptions();
 
         foreach(GameObject c in NodeInputs)
@@ -96,6 +99,15 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
         foreach(GameObject c in NodeOutputs)
             c.GetComponent<GraphConnector>().isInputNode = false;
+    }
+
+    void Start() 
+    {
+        //set up the ids of all of the graph connectors
+        for(int i=0; i<NodeInputs.Count; i++)
+            NodeInputs[i].GetComponent<GraphConnector>().id = i;
+        for(int i=0; i<NodeOutputs.Count; i++)
+            NodeOutputs[i].GetComponent<GraphConnector>().id = i;
     }
 
     void Update() {
@@ -116,28 +128,36 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
             CheckForConnectionDragging(NodeOutputs, false);
         }
         else {
+            //forgive me lord, for I have written this spaghetti code:
             if(!draggedConnectionFROM.GetComponent<GraphConnector>().Pressed) {
                 GraphNode temp = CheckForHighlightedConnection();
         
-                if(temp != null) {
+                if(temp != null && lineHolder != null) {
                     //mouse is currently dropping a connection node onto a different graph
+                    FancyLine lineHolderLine = lineHolder.GetComponent<FancyLine>();
+                    GraphConnector fromConnector = lineHolderLine.StartPos.GetComponent<GraphConnector>();
+                    GraphConnector toConnector = MouseInventory.HighlightedGraphConnection.GetComponent<GraphConnector>();
 
                     //check to make sure that if an input is being dragged, an output is slected and vise versa
                     if(MouseInventory.isInputNode && !MouseInventory.highlightingInputNode) {
                         //compatible, make connection
-                        lineHolder.GetComponent<FancyLine>().EndPos = MouseInventory.HighlightedGraphConnection;
+                        lineHolderLine.EndPos = MouseInventory.HighlightedGraphConnection;
+                        toConnector.addConnection(lineHolderLine);
+                        fromConnector.addConnection(lineHolderLine);
                         lineHolder = null;
-
-                        OutputConnections.Add(MouseInventory.HighlightedConnection);
-                        MouseInventory.HighlightedConnection.InputConnections.Add(this);
+  
+                        OutputConnections[fromConnector.id] = MouseInventory.HighlightedConnection;
+                        MouseInventory.HighlightedConnection.InputConnections[toConnector.id] = this;
                     }
                     else if(!MouseInventory.isInputNode && MouseInventory.highlightingInputNode) {
                         //compatible, make connection
-                        lineHolder.GetComponent<FancyLine>().EndPos = MouseInventory.HighlightedGraphConnection;
+                        lineHolderLine.EndPos = MouseInventory.HighlightedGraphConnection;
+                        toConnector.addConnection(lineHolderLine);
+                        fromConnector.addConnection(lineHolderLine);
                         lineHolder = null;
 
-                        InputConnections.Add(MouseInventory.HighlightedConnection);
-                        MouseInventory.HighlightedConnection.OutputConnections.Add(this);
+                        InputConnections[fromConnector.id] = MouseInventory.HighlightedConnection;
+                        MouseInventory.HighlightedConnection.OutputConnections[toConnector.id] = this;
                     }
                 }
 
@@ -231,11 +251,24 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         inputSize = new Shape(2);
     }
 
+    public void removeConnection(GraphNode node) 
+    {
+        for(int i=0; i<InputConnections.Length; i++)
+            if(InputConnections[i] == node)
+                InputConnections[i] = null;
+
+        for(int i=0; i<OutputConnections.Length; i++)
+            if(OutputConnections[i] == node)
+                OutputConnections[i] = null;
+    }
+
     public void Delete() {
         foreach(GraphNode node in InputConnections)
-            node.OutputConnections.Remove(this);
+            if(node != null)
+                node.removeConnection(this);
         foreach(GraphNode node in OutputConnections)
-            node.InputConnections.Remove(this);
+            if(node != null)
+                node.removeConnection(this);
 
         GraphController.staticReference.GraphNodes.Remove(this);
 

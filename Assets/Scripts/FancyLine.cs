@@ -119,11 +119,9 @@ public class FancyLine : MonoBehaviour
 
         //hoo boy, try to ignore how stupid this is
         //just check all of the lists if the object is in it and delete
-        startGraph.InputConnections.Remove(endGraph);
-        startGraph.OutputConnections.Remove(endGraph);
-        endGraph.InputConnections.Remove(startGraph);
-        endGraph.OutputConnections.Remove(startGraph);
-
+        startGraph.removeConnection(endGraph);
+        endGraph.removeConnection(startGraph);
+        
         Destroy(gameObject);
     }
 }
