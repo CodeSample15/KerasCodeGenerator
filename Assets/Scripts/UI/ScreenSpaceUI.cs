@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using TMPro;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -71,40 +73,77 @@ public class ScreenSpaceUI : MonoBehaviour
             {
                 case "input size":
                     //label
-                    temp = Instantiate(LabelText.gameObject);
-                    temp.transform.SetParent(OptionsMenuSettingsGrid.transform, false);
-                    temp.GetComponent<TextMeshProUGUI>().SetText("Input size:");
-                    nodeSettingsMenuObjects[counter*2] = temp;
+                    addLabelToNodeSettingsMenu("Input size:", counter);
 
                     //setting
-                    temp = Instantiate(shapeInputField);
-                    temp.transform.SetParent(OptionsMenuSettingsGrid.transform, false);
+                    temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
                     temp.GetComponent<SizeInputField>().init(2);
                     temp.GetComponent<SizeInputField>().populate(node.inputSize);
-
-                    nodeSettings[counter] = temp;
-                    nodeSettingsMenuObjects[(counter*2)+1] = temp;
                     break;
 
                 case "units":
+                    //label
+                    addLabelToNodeSettingsMenu("Units:", counter);
+
+                    //setting
+                    temp = addSettingToNodeSettingsMenu(integerOnlyInputField, counter);
+                    temp.GetComponent<TMP_InputField>().text = node.units.ToString();
                     break;
 
                 case "activation":
+                    //label
+                    addLabelToNodeSettingsMenu("Activation:", counter);
+
+                    //setting
+                    temp = addSettingToNodeSettingsMenu(textInput, counter);
+                    temp.GetComponent<TMP_InputField>().text = node.activation;
                     break;
 
                 case "dropout":
+                    //label
+                    addLabelToNodeSettingsMenu("Dropout:", counter);
+                    
+                    //setting
+                    temp = addSettingToNodeSettingsMenu(floatOnlyInputField, counter);
+                    temp.GetComponent<TMP_InputField>().text = node.dropout.ToString();
                     break;
 
                 case "kernel shape":
+                    //label
+                    addLabelToNodeSettingsMenu("Kernel shape:", counter);
+
+                    //setting
+                    temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
+                    temp.GetComponent<SizeInputField>().init(2);
+                    temp.GetComponent<SizeInputField>().populate(node.kernelShape);
                     break;
 
                 case "strides":
+                    //label (this is getting redundant)
+                    addLabelToNodeSettingsMenu("Strides:", counter);
+
+                    //setting
+                    temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
+                    temp.GetComponent<SizeInputField>().init(2);
+                    temp.GetComponent<SizeInputField>().populate(node.strides);
                     break;
 
                 case "return sequences":
+                    //label
+                    addLabelToNodeSettingsMenu("Return sequences:", counter);
+
+                    //setting
+                    temp = addSettingToNodeSettingsMenu(checkBox, counter);
+                    temp.GetComponent<Toggle>().isOn = node.returnSequences;
                     break;
 
                 case "recurrent dropout":
+                    //label
+                    addLabelToNodeSettingsMenu("Recurrent dropout:", counter);
+
+                    //setting
+                    temp = addSettingToNodeSettingsMenu(floatOnlyInputField, counter);
+                    temp.GetComponent<TMP_InputField>().text = node.recurrentDropout.ToString();
                     break;
             }
 
@@ -125,6 +164,22 @@ public class ScreenSpaceUI : MonoBehaviour
         currentOptionsNode = null;
     }
 
+    private void addLabelToNodeSettingsMenu(string label, int counter) {
+        GameObject temp = Instantiate(LabelText.gameObject);
+        temp.transform.SetParent(OptionsMenuSettingsGrid.transform, false);
+        temp.GetComponent<TextMeshProUGUI>().SetText(label);
+        nodeSettingsMenuObjects[counter*2] = temp;
+    }
+
+    private GameObject addSettingToNodeSettingsMenu(GameObject template, int counter) {
+        GameObject temp = Instantiate(template);
+        temp.transform.SetParent(OptionsMenuSettingsGrid.transform, false);
+        nodeSettings[counter] = temp;
+        nodeSettingsMenuObjects[(counter*2)+1] = temp;
+
+        return temp;
+    }
+
     private void clearOptionsFromMenu() 
     {
         foreach(GameObject obj in nodeSettingsMenuObjects)
@@ -142,24 +197,31 @@ public class ScreenSpaceUI : MonoBehaviour
                     break;
 
                 case "units":
+                    currentOptionsNode.units = int.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
                     break;
 
                 case "activation":
+                    currentOptionsNode.activation = nodeSettings[counter].GetComponent<TMP_InputField>().text;
                     break;
 
                 case "dropout":
+                    currentOptionsNode.dropout = float.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
                     break;
 
                 case "kernel shape":
+                    currentOptionsNode.kernelShape = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
                     break;
 
                 case "strides":
+                    currentOptionsNode.strides = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
                     break;
 
                 case "return sequences":
+                    currentOptionsNode.returnSequences = nodeSettings[counter].GetComponent<Toggle>().isOn;
                     break;
 
                 case "recurrent dropout":
+                    currentOptionsNode.recurrentDropout = float.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
                     break;
             }
 

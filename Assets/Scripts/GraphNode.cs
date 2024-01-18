@@ -76,8 +76,8 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     [HideInInspector] public int units;
     [HideInInspector] public string activation;
     [HideInInspector] public float dropout;
-    [HideInInspector] public Size kernelShape;
-    [HideInInspector] public Size strides;
+    [HideInInspector] public Shape kernelShape;
+    [HideInInspector] public Shape strides;
     [HideInInspector] public bool returnSequences;
     [HideInInspector] public bool returnState; //maybe, MAYBE, I'll implement this for the alpha version
     [HideInInspector] public float recurrentDropout;
@@ -249,6 +249,14 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         //Let's assume we're not loading from a save file, since that's not in my time budget for this winter break
         //initialize all of the options with default parameters
         inputSize = new Shape(2);
+        units = 10;
+        activation = "relu";
+        dropout = 0.0f;
+        kernelShape = new Shape(2);
+        strides = new Shape(2);
+        returnSequences = false;
+        returnState = false;
+        recurrentDropout = 0.0f;
     }
 
     public void removeConnection(GraphNode node) 

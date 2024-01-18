@@ -444,7 +444,9 @@ MonoBehaviour:
     rgba: 4282711808
   colorFadeTime: 0.1
   NodeName: Dense
-  NodeOptions: []
+  NodeOptions:
+  - units
+  - activation
   NodeInputs:
   - {fileID: 2194910566538934172}
   NodeOutputs:
@@ -456,6 +458,7 @@ MonoBehaviour:
   InputShape: 
   OutputShapes: []
   lineHolder: {fileID: 0}
+  editing: 0
   units: 0
   activation: 
   dropout: 0
