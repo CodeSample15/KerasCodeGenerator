@@ -146,8 +146,8 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
                         fromConnector.addConnection(lineHolderLine);
                         lineHolder = null;
   
-                        OutputConnections[fromConnector.id] = MouseInventory.HighlightedConnection;
-                        MouseInventory.HighlightedConnection.InputConnections[toConnector.id] = this;
+                        InputConnections[fromConnector.id] = MouseInventory.HighlightedConnection;
+                        MouseInventory.HighlightedConnection.OutputConnections[toConnector.id] = this;
                     }
                     else if(!MouseInventory.isInputNode && MouseInventory.highlightingInputNode) {
                         //compatible, make connection
@@ -156,8 +156,8 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
                         fromConnector.addConnection(lineHolderLine);
                         lineHolder = null;
 
-                        InputConnections[fromConnector.id] = MouseInventory.HighlightedConnection;
-                        MouseInventory.HighlightedConnection.OutputConnections[toConnector.id] = this;
+                        OutputConnections[fromConnector.id] = MouseInventory.HighlightedConnection;
+                        MouseInventory.HighlightedConnection.InputConnections[toConnector.id] = this;
                     }
                 }
 
