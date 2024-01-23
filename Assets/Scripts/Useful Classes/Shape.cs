@@ -1,14 +1,9 @@
-using System;
-using System.Diagnostics;
-using UnityEngine;
-using UnityEngine.Assertions;
-
 public class Shape
 {
     public int[] sizes;
 
-    public Shape(int size) {
-        sizes = new int[size];
+    public Shape(int dim) {
+        sizes = new int[dim];
     }
 
     public Shape(int[] sizes) {
@@ -25,6 +20,11 @@ public class Shape
         }
 
         return true;
+    }
+
+    public int dimension() 
+    {
+        return sizes.Length;
     }
 
     public string toString() 

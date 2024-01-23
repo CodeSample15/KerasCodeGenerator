@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using TMPro;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -61,93 +59,112 @@ public class ScreenSpaceUI : MonoBehaviour
         OptionsMenu.SetActive(true);
         OptionsMenuTitle.SetText(node.NodeName);
 
-        nodeSettings = new GameObject[node.NodeOptions.Length];
-        nodeSettingsMenuObjects = new GameObject[node.NodeOptions.Length*2];
-
         //add all the settings to the menu
-        int counter = 0;
-        foreach(string setting in node.NodeOptions) {
-            GameObject temp;
+        if(!node.NodeName.ToLower().Equals("input")) {
+            nodeSettings = new GameObject[node.NodeOptions.Length];
+            nodeSettingsMenuObjects = new GameObject[node.NodeOptions.Length*2];
 
-            switch(setting.ToLower()) 
-            {
-                case "input size":
-                    //label
-                    addLabelToNodeSettingsMenu("Input size:", counter);
+            int counter = 0;
+            foreach(string setting in node.NodeOptions) {
+                GameObject temp;
 
-                    //setting
-                    temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
-                    temp.GetComponent<SizeInputField>().init(2);
-                    temp.GetComponent<SizeInputField>().populate(node.inputSize);
-                    break;
+                switch(setting.ToLower()) 
+                {
+                    case "input size":
+                        //label
+                        addLabelToNodeSettingsMenu("Input size:", counter);
 
-                case "units":
-                    //label
-                    addLabelToNodeSettingsMenu("Units:", counter);
+                        //setting
+                        temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
+                        temp.GetComponent<SizeInputField>().init(2);
+                        temp.GetComponent<SizeInputField>().populate(node.inputShape);
+                        break;
 
-                    //setting
-                    temp = addSettingToNodeSettingsMenu(integerOnlyInputField, counter);
-                    temp.GetComponent<TMP_InputField>().text = node.units.ToString();
-                    break;
+                    case "units":
+                        //label
+                        addLabelToNodeSettingsMenu("Units:", counter);
 
-                case "activation":
-                    //label
-                    addLabelToNodeSettingsMenu("Activation:", counter);
+                        //setting
+                        temp = addSettingToNodeSettingsMenu(integerOnlyInputField, counter);
+                        temp.GetComponent<TMP_InputField>().text = node.units.ToString();
+                        break;
 
-                    //setting
-                    temp = addSettingToNodeSettingsMenu(textInput, counter);
-                    temp.GetComponent<TMP_InputField>().text = node.activation;
-                    break;
+                    case "activation":
+                        //label
+                        addLabelToNodeSettingsMenu("Activation:", counter);
 
-                case "dropout":
-                    //label
-                    addLabelToNodeSettingsMenu("Dropout:", counter);
-                    
-                    //setting
-                    temp = addSettingToNodeSettingsMenu(floatOnlyInputField, counter);
-                    temp.GetComponent<TMP_InputField>().text = node.dropout.ToString();
-                    break;
+                        //setting
+                        temp = addSettingToNodeSettingsMenu(textInput, counter);
+                        temp.GetComponent<TMP_InputField>().text = node.activation;
+                        break;
 
-                case "kernel shape":
-                    //label
-                    addLabelToNodeSettingsMenu("Kernel shape:", counter);
+                    case "dropout":
+                        //label
+                        addLabelToNodeSettingsMenu("Dropout:", counter);
+                        
+                        //setting
+                        temp = addSettingToNodeSettingsMenu(floatOnlyInputField, counter);
+                        temp.GetComponent<TMP_InputField>().text = node.dropout.ToString();
+                        break;
 
-                    //setting
-                    temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
-                    temp.GetComponent<SizeInputField>().init(2);
-                    temp.GetComponent<SizeInputField>().populate(node.kernelShape);
-                    break;
+                    case "kernel shape":
+                        //label
+                        addLabelToNodeSettingsMenu("Kernel shape:", counter);
 
-                case "strides":
-                    //label (this is getting redundant)
-                    addLabelToNodeSettingsMenu("Strides:", counter);
+                        //setting
+                        temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
+                        temp.GetComponent<SizeInputField>().init(2);
+                        temp.GetComponent<SizeInputField>().populate(node.kernelShape);
+                        break;
 
-                    //setting
-                    temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
-                    temp.GetComponent<SizeInputField>().init(2);
-                    temp.GetComponent<SizeInputField>().populate(node.strides);
-                    break;
+                    case "strides":
+                        //label (this is getting redundant)
+                        addLabelToNodeSettingsMenu("Strides:", counter);
 
-                case "return sequences":
-                    //label
-                    addLabelToNodeSettingsMenu("Return sequences:", counter);
+                        //setting
+                        temp = addSettingToNodeSettingsMenu(shapeInputField, counter);
+                        temp.GetComponent<SizeInputField>().init(2);
+                        temp.GetComponent<SizeInputField>().populate(node.strides);
+                        break;
 
-                    //setting
-                    temp = addSettingToNodeSettingsMenu(checkBox, counter);
-                    temp.GetComponent<Toggle>().isOn = node.returnSequences;
-                    break;
+                    case "return sequences":
+                        //label
+                        addLabelToNodeSettingsMenu("Return sequences:", counter);
 
-                case "recurrent dropout":
-                    //label
-                    addLabelToNodeSettingsMenu("Recurrent dropout:", counter);
+                        //setting
+                        temp = addSettingToNodeSettingsMenu(checkBox, counter);
+                        temp.GetComponent<Toggle>().isOn = node.returnSequences;
+                        break;
 
-                    //setting
-                    temp = addSettingToNodeSettingsMenu(floatOnlyInputField, counter);
-                    temp.GetComponent<TMP_InputField>().text = node.recurrentDropout.ToString();
-                    break;
+                    case "recurrent dropout":
+                        //label
+                        addLabelToNodeSettingsMenu("Recurrent dropout:", counter);
+
+                        //setting
+                        temp = addSettingToNodeSettingsMenu(floatOnlyInputField, counter);
+                        temp.GetComponent<TMP_InputField>().text = node.recurrentDropout.ToString();
+                        break;
+                }
+
+                counter++;
             }
+        }
+        else {
+            nodeSettings = new GameObject[2];
+            nodeSettingsMenuObjects = new GameObject[4];
 
-            counter++;
+            //the node is an input node, do some special shit to handle variable input size
+            addLabelToNodeSettingsMenu("Input dim:", 0);
+            
+            GameObject tempDim = addSettingToNodeSettingsMenu(integerOnlyInputField, 0);
+            tempDim.GetComponent<TMP_InputField>().text = node.inputShape.dimension().ToString();
+
+            addLabelToNodeSettingsMenu("Input shape:", 1);
+
+            GameObject tempShape = addSettingToNodeSettingsMenu(shapeInputField, 1);
+            tempShape.GetComponent<SizeInputField>().init(node.inputShape.dimension());
+            tempShape.GetComponent<SizeInputField>().populate(node.inputShape);
+            tempShape.GetComponent<SizeInputField>().setDimWatch(tempDim.GetComponent<TMP_InputField>());
         }
     }
 
@@ -188,44 +205,49 @@ public class ScreenSpaceUI : MonoBehaviour
 
     private void saveCurrentNodeSettings()
     {
-        int counter = 0;
-        foreach(string setting in currentOptionsNode.NodeOptions) {
-            switch(setting.ToLower()) 
-            {
-                case "input size":
-                    currentOptionsNode.inputSize = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
-                    break;
+        if(!currentOptionsNode.NodeName.ToLower().Equals("input")) {
+            int counter = 0;
+            foreach(string setting in currentOptionsNode.NodeOptions) {
+                switch(setting.ToLower()) 
+                {
+                    case "input size":
+                        currentOptionsNode.inputShape = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
+                        break;
 
-                case "units":
-                    currentOptionsNode.units = int.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
-                    break;
+                    case "units":
+                        currentOptionsNode.units = int.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
+                        break;
 
-                case "activation":
-                    currentOptionsNode.activation = nodeSettings[counter].GetComponent<TMP_InputField>().text;
-                    break;
+                    case "activation":
+                        currentOptionsNode.activation = nodeSettings[counter].GetComponent<TMP_InputField>().text;
+                        break;
 
-                case "dropout":
-                    currentOptionsNode.dropout = float.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
-                    break;
+                    case "dropout":
+                        currentOptionsNode.dropout = float.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
+                        break;
 
-                case "kernel shape":
-                    currentOptionsNode.kernelShape = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
-                    break;
+                    case "kernel shape":
+                        currentOptionsNode.kernelShape = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
+                        break;
 
-                case "strides":
-                    currentOptionsNode.strides = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
-                    break;
+                    case "strides":
+                        currentOptionsNode.strides = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
+                        break;
 
-                case "return sequences":
-                    currentOptionsNode.returnSequences = nodeSettings[counter].GetComponent<Toggle>().isOn;
-                    break;
+                    case "return sequences":
+                        currentOptionsNode.returnSequences = nodeSettings[counter].GetComponent<Toggle>().isOn;
+                        break;
 
-                case "recurrent dropout":
-                    currentOptionsNode.recurrentDropout = float.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
-                    break;
+                    case "recurrent dropout":
+                        currentOptionsNode.recurrentDropout = float.Parse(nodeSettings[counter].GetComponent<TMP_InputField>().text);
+                        break;
+                }
+
+                counter++;
             }
-
-            counter++;
+        }
+        else {
+            currentOptionsNode.inputShape = nodeSettings[1].GetComponent<SizeInputField>().getResult();
         }
     }
 

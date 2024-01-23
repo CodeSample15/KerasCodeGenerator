@@ -44,8 +44,6 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     [HideInInspector] public GraphNode[] InputConnections;
     [HideInInspector] public GraphNode[] OutputConnections;
 
-
-    [HideInInspector] public string InputShape;
     [HideInInspector] public List<string> OutputShapes;
 
     [HideInInspector] public GameObject lineHolder; //to hold a new line when one is drawn
@@ -71,7 +69,7 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     //Every. Possible. Node. Option.
     //I'm reusing this script for every single node variation. That means I need to have as many arguments for the keras layer api represented here as possible
-    [HideInInspector] public Shape inputSize;
+    [HideInInspector] public Shape inputShape;
 
     [HideInInspector] public int units;
     [HideInInspector] public string activation;
@@ -248,7 +246,7 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     {
         //Let's assume we're not loading from a save file, since that's not in my time budget for this winter break
         //initialize all of the options with default parameters
-        inputSize = new Shape(2);
+        inputShape = new Shape(2);
         units = 10;
         activation = "relu";
         dropout = 0.0f;
