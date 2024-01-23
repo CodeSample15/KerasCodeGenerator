@@ -49,11 +49,6 @@ public class ScreenSpaceUI : MonoBehaviour
         InitNodeAddMenu();
     }
 
-    public void CompileGraph() 
-    {
-        //HOOO BOY HERE COMES A BIG BOY ALGORITHM
-    }
-
     public void showNodeOptionsMenu(GraphNode node) 
     {
         AddNodeMenuAnims.SetBool("Showing", false);
