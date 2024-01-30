@@ -33,7 +33,7 @@ public class Shape
         for(int i=0; i<sizes.Length; i++) {
             output += sizes[i];
             if(i!=sizes.Length-1)
-                output += 'x';
+                output += ',';
         }
 
         return output;

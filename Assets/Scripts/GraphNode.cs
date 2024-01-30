@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,8 +8,10 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Button))]
 public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IComparable<GraphNode>
 {
+    public int id = -1; //for keeping track of which node is in which model
+
     [Header("Cosmetic")]
-    
+
     [SerializeField] public Color32 NormalColor;
     [SerializeField] private Color32 SelectedColor;
     [SerializeField] private Color32 EditingColor;
