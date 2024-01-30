@@ -76,7 +76,7 @@ public class GraphController : MonoBehaviour
             while(checkPoints.Count > 0) {
                 string modelName = "model_" + modelCount;
 
-                addToCode(modelName + " = Concatenate([" + merges[0][0] + ", " + merges[0][1] + "])");
+                addToCode(modelName + " = Concatenate()([" + merges[0][0] + ", " + merges[0][1] + "])");
 
                 traverseModel(checkPoints[0], modelName, modelName, merges, output_names);
                 checkPoints.RemoveAt(0);
