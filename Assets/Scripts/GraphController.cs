@@ -33,7 +33,7 @@ public class GraphController : MonoBehaviour
 
         requiredLayers = new List<string>();
         
-        if(graphCanBeCompiled()) {
+        if(graphCanBeCompiled()) { //also counts how many individual models are in the graph and assigns the value to numModels
             //reset the output string
             compiledCode = "";
             addToCode("from keras.models import Model");
@@ -48,15 +48,27 @@ public class GraphController : MonoBehaviour
 
             checkPoints = new List<GraphNode>(); //to keep track of different model merges
             List<string[]> merges = new List<string[]>();
-            List<string> input_names = new List<string>();
-            List<string> output_names = new List<string>();
+            List<string>[] input_names = new List<string>[numModels];
+            List<string>[] output_names = new List<string>[numModels];
+
+            initStringListArray(input_names); //we create an array of different inputs and outputs to determine which input and which output corresponds to which model in the graph (represented by the index of this list)
+            initStringListArray(output_names);
+
+            //create a list of all of the unique model ids
+            List<int> uniqueModels = new List<int>();
+            foreach(GraphNode n in GraphNodes) {
+            if(!uniqueModels.Contains(n.id) && n.id != -1)
+                uniqueModels.Add(n.id);
+            }
 
             foreach(GraphNode node in GraphNodes) {
                 if(node.NodeName.Equals("Input")) {
                     string inputName = "input_" + modelCount;
                     string modelName = "m_" + modelCount;
 
-                    input_names.Add(inputName);
+                    int modelIndex = uniqueModels.IndexOf(node.id);
+
+                    input_names[modelIndex].Add(inputName);
 
                     //add input to model
                     addToCode(inputName + " = Input(shape=(", false);
@@ -64,7 +76,7 @@ public class GraphController : MonoBehaviour
                     addToCode("))");
 
                     
-                    traverseModel(node, inputName, modelName, merges, output_names);
+                    traverseModel(node, inputName, modelName, merges, output_names, modelIndex);
                     addToCode("");
 
                     modelCount++;
@@ -74,11 +86,12 @@ public class GraphController : MonoBehaviour
             //combine models that are joined by concat
             //repeat until no more nodes remain
             while(checkPoints.Count > 0) {
-                string modelName = "model_" + modelCount;
+                string modelName = "m_" + modelCount;
 
                 addToCode(modelName + " = Concatenate()([" + merges[0][0] + ", " + merges[0][1] + "])");
 
-                traverseModel(checkPoints[0], modelName, modelName, merges, output_names);
+                int modelIndex = uniqueModels.IndexOf(checkPoints[0].id);
+                traverseModel(checkPoints[0], modelName, modelName, merges, output_names, modelIndex);
                 checkPoints.RemoveAt(0);
                 merges.RemoveAt(0);
                 
@@ -86,23 +99,24 @@ public class GraphController : MonoBehaviour
             }
 
             //combine everything into one model
-            addToCode(""); //spacing
+            //repeat for each individual model in the graph
+            for(int i=0; i<numModels; i++) {
+                addToCode("model_" + i + "= Model(inputs=[", false);
+                for(int j=0; j<input_names[i].Count; j++) {
+                    addToCode(input_names[i][j], false);
+                    if(i < input_names[i].Count-1)
+                        addToCode(",", false);
+                }
 
-            addToCode("model = Model(inputs = [", false);
-            for(int i=0; i<input_names.Count; i++) {
-                addToCode(input_names[i], false);
-                if(i < input_names.Count-1)
-                    addToCode(",", false);
+                addToCode("], outputs=[", false);
+                for(int j=0; j<output_names[i].Count; j++) {
+                    addToCode(output_names[i][j], false);
+                    if(i < output_names[i].Count-1)
+                        addToCode(",", false);
+                }
+
+                addToCode("])");
             }
-
-            addToCode("], outputs=[", false);
-            for(int i=0; i<output_names.Count; i++) {
-                addToCode(output_names[i], false);
-                if(i < output_names.Count-1)
-                    addToCode(",", false);
-            }
-
-            addToCode("])");
 
             Debug.Log(compiledCode);
         }
@@ -112,7 +126,7 @@ public class GraphController : MonoBehaviour
     }
 
     //traverse the model until a split or join is made in the graph
-    private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string> output_names) 
+    private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string>[] output_names, int modelIndex) 
     {
         //trace the model
         GraphNode current = start.OutputConnections[0];
@@ -137,7 +151,7 @@ public class GraphController : MonoBehaviour
             }
         }
         else {
-            output_names.Add(modelName);
+            output_names[modelIndex].Add(modelName);
         }
     }
 
@@ -267,6 +281,12 @@ public class GraphController : MonoBehaviour
         }
 
         return code;
+    }
+
+    private void initStringListArray(List<string>[] arr) {
+        for(int i=0; i<arr.Length; i++) {
+            arr[i] = new List<string>();
+        }
     }
 
     private void ManageInteractivity() 
