@@ -6,6 +6,11 @@ using UnityEngine;
 public class GraphController : MonoBehaviour
 {
     public static GraphController staticReference;
+
+    //for notifying the user of their code generation status
+    [SerializeField] private Animator compiledNotification;
+    [SerializeField] private Animator failedNotification;
+
     public List<GraphNode> GraphNodes;
 
     private List<GraphNode> visitedNodes;
@@ -118,9 +123,15 @@ public class GraphController : MonoBehaviour
                 addToCode("])");
             }
 
+            //copy the code to the user's clipboard and notify the user
+            GUIUtility.systemCopyBuffer = compiledCode;
+            compiledNotification.SetTrigger("Show");
+
             Debug.Log(compiledCode);
         }
         else {
+            failedNotification.SetTrigger("Show");
+
             Debug.Log("Unable to compile");
         }
     }
