@@ -20,6 +20,8 @@ public class GraphController : MonoBehaviour
     private string compiledCode;
     private int numModels; //the number of individual, non connected models in the graph
 
+    private string reasonForFailing = "";
+
     void Awake() 
     {
         compiledCode = "";
@@ -78,6 +80,8 @@ public class GraphController : MonoBehaviour
                     //add input to model
                     addToCode(inputName + " = Input(shape=(", false);
                     addToCode(node.inputShape.toString(), false);
+                    if(node.inputShape.sizes.Length == 1)
+                        addToCode(",", false);
                     addToCode("))");
 
                     
@@ -103,10 +107,12 @@ public class GraphController : MonoBehaviour
                 modelCount++;
             }
 
+            addToCode(""); //spacing
+
             //combine everything into one model
             //repeat for each individual model in the graph
             for(int i=0; i<numModels; i++) {
-                addToCode("model_" + i + "= Model(inputs=[", false);
+                addToCode("model_" + i + " = Model(inputs=[", false);
                 for(int j=0; j<input_names[i].Count; j++) {
                     addToCode(input_names[i][j], false);
                     if(i < input_names[i].Count-1)
@@ -132,7 +138,7 @@ public class GraphController : MonoBehaviour
         else {
             failedNotification.SetTrigger("Show");
 
-            Debug.Log("Unable to compile");
+            Debug.LogError("Unable to compile! Reason:\n" + reasonForFailing);
         }
     }
 
@@ -220,8 +226,10 @@ public class GraphController : MonoBehaviour
                 if(inputN != null)
                     inputN.id = id; //link input node to the rest of the model
 
-                if(inputN == null || !canBeTracedUpToInput(inputN, id))
+                if(inputN == null || !canBeTracedUpToInput(inputN, id)) {
+                    reasonForFailing = "Incomplete graph (Concatenate doesn't have all inputs satisfied)";
                     return false;
+                }
             }
 
             if(!checkPoints.Contains(node))
@@ -231,8 +239,12 @@ public class GraphController : MonoBehaviour
             return true; //more than out output or input, come back to this later
         }
 
-        if(visitedNodes.Contains(node))
+        /*
+        if(visitedNodes.Contains(node)) {
+            reasonForFailing = "Infinite loop in graph detected";
             return false; //prevents infinite loop i think
+        }
+        */
 
         visitedNodes.Add(node);
 
@@ -278,7 +290,10 @@ public class GraphController : MonoBehaviour
                 break;
 
             case "conv2d":
-                code += "filters=" + node.units + ", kernel_size=(" + node.kernelShape.toString() + "), strides=(" + node.strides.toString() + ")" + ", activation=" + node.activation + ")";
+                code += "filters=" + node.units + ", kernel_size=(" + node.kernelShape.toString() + "), ";
+                if(node.strides.sizes[0] != 0 && node.strides.sizes[1] != 0)
+                    code += "strides=(" + node.strides.toString() + "), ";
+                code += "activation=\'" + node.activation + "\', padding=\'same\')"; //TODO: Add padding option to the node settings
                 break;
 
             case "flatten":

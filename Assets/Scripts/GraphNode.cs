@@ -250,7 +250,11 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         units = 10;
         activation = "relu";
         dropout = 0.0f;
+        
         kernelShape = new Shape(2);
+        kernelShape.sizes[0] = 1;
+        kernelShape.sizes[1] = 1;
+
         strides = new Shape(2);
         returnSequences = false;
         returnState = false;

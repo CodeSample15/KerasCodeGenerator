@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -207,6 +208,7 @@ public class ScreenSpaceUI : MonoBehaviour
     {
         if(!currentOptionsNode.NodeName.ToLower().Equals("input")) {
             int counter = 0;
+            Shape temp;
             foreach(string setting in currentOptionsNode.NodeOptions) {
                 switch(setting.ToLower()) 
                 {
@@ -227,11 +229,15 @@ public class ScreenSpaceUI : MonoBehaviour
                         break;
 
                     case "kernel shape":
-                        currentOptionsNode.kernelShape = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
+                        temp = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
+                        removeOOBValuesFromShape(temp, 1);
+                        currentOptionsNode.kernelShape = temp;
                         break;
 
                     case "strides":
-                        currentOptionsNode.strides = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
+                        temp = nodeSettings[counter].GetComponent<SizeInputField>().getResult();
+                        removeOOBValuesFromShape(temp, 0);
+                        currentOptionsNode.strides = temp;
                         break;
 
                     case "return sequences":
@@ -248,6 +254,15 @@ public class ScreenSpaceUI : MonoBehaviour
         }
         else {
             currentOptionsNode.inputShape = nodeSettings[1].GetComponent<SizeInputField>().getResult();
+        }
+    }
+
+    private void removeOOBValuesFromShape(Shape shape, int l_bound=0, int h_bound=-1) {
+        for(int i=0; i<shape.sizes.Length; i++) {
+            if(shape.sizes[i] < l_bound)
+                shape.sizes[i] = l_bound;
+            if(h_bound != -1 && shape.sizes[i] > h_bound)
+                shape.sizes[i] = h_bound;
         }
     }
 
