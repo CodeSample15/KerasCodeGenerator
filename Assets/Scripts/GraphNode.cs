@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -51,6 +52,7 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     private Button MainButton;
     private Button OptionsButton;
+    private TextMeshProUGUI descriptionText;
 
 
     private Vector2 curPosition;
@@ -65,7 +67,7 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     private GameObject draggedConnectionFROM; //the origin of the new connection
     private GameObject draggedConnecitonTO; //this is more of a temp object for the button that's going to follow the mouse
 
-    public static string[] possibleActivations = {"relu", "LeakyReLU", "linear", "tanh", "sigmoid"};
+    public static string[] possibleActivations = {"relu", "linear", "tanh", "sigmoid"}; //leaky relu is going to be an actual layer
 
     //Every. Possible. Node. Option.
     //I'm reusing this script for every single node variation. That means I need to have as many arguments for the keras layer api represented here as possible
@@ -77,7 +79,7 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     [HideInInspector] public Shape kernelShape;
     [HideInInspector] public Shape strides;
     [HideInInspector] public bool returnSequences;
-    [HideInInspector] public bool returnState; //maybe, MAYBE, I'll implement this for the alpha version
+    [HideInInspector] public bool returnState; //hah not even close to being implemented
     [HideInInspector] public float recurrentDropout;
 
 
@@ -97,6 +99,9 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
         foreach(GameObject c in NodeOutputs)
             c.GetComponent<GraphConnector>().isInputNode = false;
+
+        Transform tempTextHolder = transform.Find("Info Box");
+        descriptionText = tempTextHolder != null ? tempTextHolder.GetComponent<TextMeshProUGUI>() : null;
     }
 
     void Start() 
@@ -106,6 +111,8 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
             NodeInputs[i].GetComponent<GraphConnector>().id = i;
         for(int i=0; i<NodeOutputs.Count; i++)
             NodeOutputs[i].GetComponent<GraphConnector>().id = i;
+
+        updateDescription();
     }
 
     void Update() {
@@ -214,6 +221,49 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         GetComponent<Image>().color = EditingColor;
 
         ScreenSpaceUI.staticRef.showNodeOptionsMenu(this);
+    }
+
+    public void updateDescription() 
+    {
+        if(descriptionText != null) {
+            descriptionText.text = "";
+
+            foreach(string setting in NodeOptions) {
+                switch(setting) {
+                    case "input size":
+                        descriptionText.text += "Input size: (" + inputShape.toString() + ")\n";
+                        break;
+
+                    case "units":
+                        descriptionText.text += "Units: " + units.ToString() + "\n";
+                        break;
+
+                    case "activation":
+                        descriptionText.text += "Activation: " + activation + "\n";
+                        break;
+
+                    case "dropout":
+                        descriptionText.text += "Dropout: " + dropout + "\n";
+                        break;
+
+                    case "kernel shape":
+                        descriptionText.text += "Kernel shape: (" + kernelShape.toString() + ")\n";
+                        break;
+
+                    case "strides":
+                        descriptionText.text += "Strides: (" + strides.toString() + ")\n";
+                        break;
+
+                    case "return sequences":
+                        descriptionText.text += "Return seqs: " + returnSequences + "\n";
+                        break;
+
+                    case "recurrent dropout":
+                        descriptionText.text += "Recurrent drop: " + recurrentDropout + "\n";
+                        break;
+                }
+            }
+        }
     }
 
     public void OnPointerDown(PointerEventData eventData) {
