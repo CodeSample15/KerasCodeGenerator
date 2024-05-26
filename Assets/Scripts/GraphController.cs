@@ -145,11 +145,11 @@ public class GraphController : MonoBehaviour
     }
 
     //traverse the model until a split or join is made in the graph
-    private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string>[] output_names, int modelIndex, bool skipFirst=true) 
+    private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string>[] output_names, int modelIndex, bool skipFirst=true, bool startWithInput=true) 
     {
         //trace the model
         GraphNode current = skipFirst ? start.OutputConnections[0] : start;
-        bool firstLayer = true;
+        bool firstLayer = startWithInput;
 
         while(current != null && current.OutputConnections.Length==1 && current.InputConnections.Length==1) {
             addToCode(modelName + " = " + getCodeForNode(current) + "(" + (firstLayer ? inputName : modelName) + ")");
@@ -160,8 +160,10 @@ public class GraphController : MonoBehaviour
 
         //split node
         if(current != null && current.OutputConnections.Length != 1) {
-            traverseModel(current.OutputConnections[0], inputName, modelName, merges, output_names, modelIndex, false);
-            traverseModel(current.OutputConnections[1], inputName, modelName, merges, output_names, modelIndex, false);
+            addToCode(""); //new line for the new model
+            traverseModel(current.OutputConnections[0], inputName, modelName + "_s1", merges, output_names, modelIndex, false, firstLayer);
+            addToCode("");
+            traverseModel(current.OutputConnections[1], inputName, modelName + "_s2", merges, output_names, modelIndex, false, firstLayer);
         }
         else {
             if(current != null) {
