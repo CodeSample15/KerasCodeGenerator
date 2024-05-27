@@ -145,25 +145,33 @@ public class GraphController : MonoBehaviour
     }
 
     //traverse the model until a split or join is made in the graph
-    private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string>[] output_names, int modelIndex, bool skipFirst=true, bool startWithInput=true) 
+    private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string>[] output_names, int modelIndex, bool skipFirst=true, bool startWithInput=true, bool isSplit=false, int splitId=1) 
     {
         //trace the model
         GraphNode current = skipFirst ? start.OutputConnections[0] : start;
         bool firstLayer = startWithInput;
+        bool firstLoop = true;
 
         while(current != null && current.OutputConnections.Length==1 && current.InputConnections.Length==1) {
-            addToCode(modelName + " = " + getCodeForNode(current) + "(" + (firstLayer ? inputName : modelName) + ")");
+            string baseName = modelName;
+            if(firstLoop && isSplit)
+                baseName += "_s" + splitId;
+
+            addToCode(baseName + " = " + getCodeForNode(current) + "(" + (firstLayer ? inputName : modelName) + ")");
             current = current.OutputConnections[0];
 
+            if(firstLoop && isSplit)
+                modelName += "_s" + splitId;
             firstLayer = false;
+            firstLoop = false;
         }
 
         //split node
         if(current != null && current.OutputConnections.Length != 1) {
             addToCode(""); //new line for the new model
-            traverseModel(current.OutputConnections[0], inputName, modelName + "_s1", merges, output_names, modelIndex, false);
+            traverseModel(current.OutputConnections[0], inputName, modelName, merges, output_names, modelIndex, false, firstLayer, true, 1);
             addToCode("");
-            traverseModel(current.OutputConnections[1], inputName, modelName + "_s2", merges, output_names, modelIndex, false);
+            traverseModel(current.OutputConnections[1], inputName, modelName, merges, output_names, modelIndex, false, firstLayer, true, 2);
         }
         else {
             //concat node
