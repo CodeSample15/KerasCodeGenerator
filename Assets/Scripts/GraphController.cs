@@ -161,11 +161,12 @@ public class GraphController : MonoBehaviour
         //split node
         if(current != null && current.OutputConnections.Length != 1) {
             addToCode(""); //new line for the new model
-            traverseModel(current.OutputConnections[0], inputName, modelName + "_s1", merges, output_names, modelIndex, false, firstLayer);
+            traverseModel(current.OutputConnections[0], inputName, modelName + "_s1", merges, output_names, modelIndex, false);
             addToCode("");
-            traverseModel(current.OutputConnections[1], inputName, modelName + "_s2", merges, output_names, modelIndex, false, firstLayer);
+            traverseModel(current.OutputConnections[1], inputName, modelName + "_s2", merges, output_names, modelIndex, false);
         }
         else {
+            //concat node
             if(current != null) {
                 if(checkPoints.Contains(current) && current.NodeName.Equals("Concatenate")) {
                     merges[checkPoints.IndexOf(current)][1] = firstLayer ? inputName : modelName;
@@ -179,7 +180,8 @@ public class GraphController : MonoBehaviour
                 }
             }
             else {
-                output_names[modelIndex].Add(modelName);
+                //output node
+                output_names[modelIndex].Add(firstLayer ? inputName : modelName);
             }
         }
     }
@@ -236,7 +238,7 @@ public class GraphController : MonoBehaviour
         if(!node.NodeName.Equals("Input") && !requiredLayers.Contains(node.NodeName))
             requiredLayers.Add(node.NodeName);
 
-        if(node.OutputConnections.Length > 1 || node.InputConnections.Length > 1) {
+        if(node.InputConnections.Length > 1) {
             //make sure all of the inputs are satisfied
             foreach(GraphNode inputN in node.InputConnections) {
                 if(inputN != null)
@@ -264,9 +266,8 @@ public class GraphController : MonoBehaviour
 
         visitedNodes.Add(node);
 
-        if(node.OutputConnections[0] == null)
-            return true;
-
+        if(node.OutputConnections.Length > 1)
+            return canBeCompiled(node.OutputConnections[0], id) && canBeCompiled(node.OutputConnections[1], id);
         return canBeCompiled(node.OutputConnections[0], id);
     }
 
