@@ -88,7 +88,6 @@ public class GraphController : MonoBehaviour
 
                     
                     traverseModel(node, inputName, modelName, merges, output_names, modelIndex);
-                    addToCode("");
 
                     modelCount++;
                 }
@@ -147,6 +146,8 @@ public class GraphController : MonoBehaviour
     //traverse the model until a split or join is made in the graph
     private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string>[] output_names, int modelIndex, bool skipFirst=true, bool startWithInput=true, bool isSplit=false, int splitId=1) 
     {
+        bool codeWritten = false;
+
         //trace the model
         GraphNode current = skipFirst ? start.OutputConnections[0] : start;
         bool firstLayer = startWithInput;
@@ -159,6 +160,7 @@ public class GraphController : MonoBehaviour
 
             addToCode(baseName + " = " + getCodeForNode(current) + "(" + (firstLayer ? inputName : modelName) + ")");
             current = current.OutputConnections[0];
+            codeWritten = true;
 
             if(firstLoop && isSplit)
                 modelName += "_s" + splitId;
@@ -168,9 +170,7 @@ public class GraphController : MonoBehaviour
 
         //split node
         if(current != null && current.OutputConnections.Length != 1) {
-            addToCode(""); //new line for the new model
             traverseModel(current.OutputConnections[0], inputName, modelName, merges, output_names, modelIndex, false, firstLayer, true, 1);
-            addToCode("");
             traverseModel(current.OutputConnections[1], inputName, modelName, merges, output_names, modelIndex, false, firstLayer, true, 2);
         }
         else {
@@ -192,6 +192,9 @@ public class GraphController : MonoBehaviour
                 output_names[modelIndex].Add(firstLayer ? inputName : modelName);
             }
         }
+
+        if(codeWritten)
+            addToCode(""); //start new line
     }
 
     private bool graphCanBeCompiled() 
