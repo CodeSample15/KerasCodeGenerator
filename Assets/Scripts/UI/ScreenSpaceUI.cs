@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -293,6 +290,8 @@ public class ScreenSpaceUI : MonoBehaviour
     {
         GameObject temp = Instantiate(node.gameObject, Vector2.zero, Quaternion.identity);
         temp.transform.SetParent(worldSpaceUI.transform, false);
+
+        temp.transform.position = new Vector2(Random.Range(-4f, 4f), Random.Range(-4f, 4f)); //prevent stacking of new nodes
 
         GraphController.staticReference.GraphNodes.Add(temp.GetComponent<GraphNode>()); //update the graph
     }
