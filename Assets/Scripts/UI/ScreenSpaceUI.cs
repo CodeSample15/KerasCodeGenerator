@@ -119,7 +119,7 @@ public class ScreenSpaceUI : MonoBehaviour
                         break;
 
                     case "strides":
-                        //label (this is getting redundant)
+                        //label (this commenting is getting redundant)
                         addLabelToNodeSettingsMenu("Strides:", counter);
 
                         //setting
@@ -255,6 +255,8 @@ public class ScreenSpaceUI : MonoBehaviour
         else {
             currentOptionsNode.inputShape = nodeSettings[1].GetComponent<SizeInputField>().getResult();
         }
+
+        currentOptionsNode.updateDescription(); //update the visual on the node that displays important information so editing graphs is easier
     }
 
     private void removeOOBValuesFromShape(Shape shape, int l_bound=0, int h_bound=-1) {

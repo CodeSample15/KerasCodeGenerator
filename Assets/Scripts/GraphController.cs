@@ -36,7 +36,7 @@ public class GraphController : MonoBehaviour
 
     public void CompileGraph() 
     {
-        //data structures and algorithms hell:
+        //data structures and algorithms hell: (tracing a graph and appending the generated code in an order that makes sense)
 
         requiredLayers = new List<string>();
         
@@ -45,8 +45,10 @@ public class GraphController : MonoBehaviour
             compiledCode = "";
             addToCode("from keras.models import Model");
             addToCode("from keras.layers import Input", false);
-            foreach(string layer in requiredLayers)
-                addToCode(", " + layer, false);
+            foreach(string layer in requiredLayers) {
+                if(layer != "Split") //split is not an actual keras layer, just something I am using to represent a split in the model architecture
+                    addToCode(", " + layer, false);
+            }
             addToCode(""); //some spacing
             addToCode("");
 
@@ -86,7 +88,6 @@ public class GraphController : MonoBehaviour
 
                     
                     traverseModel(node, inputName, modelName, merges, output_names, modelIndex);
-                    addToCode("");
 
                     modelCount++;
                 }
@@ -133,7 +134,7 @@ public class GraphController : MonoBehaviour
             GUIUtility.systemCopyBuffer = compiledCode;
             compiledNotification.SetTrigger("Show");
 
-            Debug.Log(compiledCode);
+            Debug.Log(compiledCode); //for my sanity
         }
         else {
             failedNotification.SetTrigger("Show");
@@ -143,38 +144,66 @@ public class GraphController : MonoBehaviour
     }
 
     //traverse the model until a split or join is made in the graph
-    private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string>[] output_names, int modelIndex) 
+    private void traverseModel(GraphNode start, string inputName, string modelName, List<string[]> merges, List<string>[] output_names, int modelIndex, bool skipFirst=true, bool startWithInput=true, bool isSplit=false, int splitId=1) 
     {
-        //trace the model
-        GraphNode current = start.OutputConnections[0];
-        bool firstLayer = true;
-        while(current != null && current.OutputConnections.Length==1 && current.InputConnections.Length==1) {
-            addToCode(modelName + " = " + getCodeForNode(current) + "(" + (firstLayer ? inputName : modelName) + ")");
-            current = current.OutputConnections[0];
+        bool codeWritten = false;
 
+        //trace the model
+        GraphNode current = skipFirst ? start.OutputConnections[0] : start;
+        bool firstLayer = startWithInput;
+        bool firstLoop = true;
+
+        while(current != null && current.OutputConnections.Length==1 && current.InputConnections.Length==1) {
+            string baseName = modelName;
+            if(firstLoop && isSplit)
+                baseName += "_s" + splitId;
+
+            addToCode(baseName + " = " + getCodeForNode(current) + "(" + (firstLayer ? inputName : modelName) + ")");
+            current = current.OutputConnections[0];
+            codeWritten = true;
+
+            if(firstLoop && isSplit)
+                modelName += "_s" + splitId;
             firstLayer = false;
+            firstLoop = false;
         }
 
-        if(current != null) {
-            if(checkPoints.Contains(current) && current.NodeName.Equals("Concatenate")) {
-                merges[checkPoints.IndexOf(current)][1] = firstLayer ? inputName : modelName;
-            }
-            else {
-                checkPoints.Add(current);
-
-                string[] placeHolder = new string[2];
-                placeHolder[0] = firstLayer ? inputName : modelName;
-                merges.Add(placeHolder);
-            }
+        //split node
+        if(current != null && current.OutputConnections.Length != 1) {
+            traverseModel(current.OutputConnections[0], inputName, modelName, merges, output_names, modelIndex, false, firstLayer, true, 1);
+            traverseModel(current.OutputConnections[1], inputName, modelName, merges, output_names, modelIndex, false, firstLayer, true, 2);
         }
         else {
-            output_names[modelIndex].Add(modelName);
+            //concat node
+            if(current != null) {
+                if(checkPoints.Contains(current) && current.NodeName.Equals("Concatenate")) {
+                    merges[checkPoints.IndexOf(current)][1] = firstLayer ? inputName : modelName;
+                }
+                else {
+                    checkPoints.Add(current);
+
+                    string[] placeHolder = new string[2];
+                    placeHolder[0] = firstLayer ? inputName : modelName;
+                    merges.Add(placeHolder);
+                }
+            }
+            else {
+                //output node
+                output_names[modelIndex].Add(firstLayer ? inputName : modelName);
+            }
         }
+
+        if(codeWritten)
+            addToCode(""); //start new line
     }
 
     private bool graphCanBeCompiled() 
     {
         //check to make sure graph can be compiled
+        if(GraphNodes.Count == 0) {
+            reasonForFailing = "Empty graph";
+            return false; //just stop here, there's nothing to compile lol
+        }
 
         //reset all ids(useful for tracing later)
         foreach(GraphNode n in GraphNodes) {
@@ -220,7 +249,7 @@ public class GraphController : MonoBehaviour
         if(!node.NodeName.Equals("Input") && !requiredLayers.Contains(node.NodeName))
             requiredLayers.Add(node.NodeName);
 
-        if(node.OutputConnections.Length > 1 || node.InputConnections.Length > 1) {
+        if(node.InputConnections.Length > 1) {
             //make sure all of the inputs are satisfied
             foreach(GraphNode inputN in node.InputConnections) {
                 if(inputN != null)
@@ -248,9 +277,8 @@ public class GraphController : MonoBehaviour
 
         visitedNodes.Add(node);
 
-        if(node.OutputConnections[0] == null)
-            return true;
-
+        if(node.OutputConnections.Length > 1)
+            return canBeCompiled(node.OutputConnections[0], id) && canBeCompiled(node.OutputConnections[1], id);
         return canBeCompiled(node.OutputConnections[0], id);
     }
 
@@ -302,7 +330,7 @@ public class GraphController : MonoBehaviour
 
             default:
                 code += "ERROR: NODE NOT IMPLEMENTED YET)";
-                Debug.LogWarning("Node not found to convert to code.");
+                Debug.LogWarning("Node \"" + node.NodeName.ToUpper() + "\" not implemented yet.");
                 break;
         }
 
