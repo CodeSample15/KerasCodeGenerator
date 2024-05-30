@@ -108,7 +108,7 @@ public class GraphController : MonoBehaviour
                 modelCount++;
             }
 
-            addToCode(""); //spacing
+            //addToCode(""); //spacing
 
             //combine everything into one model
             //repeat for each individual model in the graph
@@ -135,6 +135,10 @@ public class GraphController : MonoBehaviour
             compiledNotification.SetTrigger("Show");
 
             Debug.Log(compiledCode); //for my sanity
+
+            //update the text in the preview window with the compiled code
+            ScreenSpaceUI.staticRef.CodePreview.text = compiledCode;
+            ScreenSpaceUI.staticRef.previewCodeButton.SetActive(true); //will be set false once the graph is changed
         }
         else {
             failedNotification.SetTrigger("Show");
@@ -373,10 +377,14 @@ public class GraphController : MonoBehaviour
 
         //handle deleting connections
         if(Input.GetKeyDown(KeyCode.Backspace)) {
-            if(GraphNode.SelectedNode != null)
+            if(GraphNode.SelectedNode != null) {
                 GraphNode.SelectedNode.Delete();
-            if(FancyLine.selectedLine != null)
+                ScreenSpaceUI.staticRef.previewCodeButton.SetActive(false); //graph updated, hide the preview button since the code changed
+            }
+            if(FancyLine.selectedLine != null) {
                 FancyLine.selectedLine.Delete();
+                ScreenSpaceUI.staticRef.previewCodeButton.SetActive(false);
+            }
         }
     }
 }

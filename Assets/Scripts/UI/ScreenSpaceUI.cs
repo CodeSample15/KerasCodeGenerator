@@ -25,6 +25,8 @@ public class ScreenSpaceUI : MonoBehaviour
     [SerializeField] private GameObject OptionsMenu;
     [SerializeField] private GameObject OptionsMenuSettingsGrid;
     [SerializeField] private TextMeshProUGUI OptionsMenuTitle;
+    public GameObject previewCodeButton; //this and the code preview will be accessed by the GraphController and GraphNode. Just putting the references here for organization
+    public TMP_InputField CodePreview;
 
 
     [Header("Animations:")]
@@ -43,6 +45,9 @@ public class ScreenSpaceUI : MonoBehaviour
         currentOptionsNode = null;
 
         staticRef = this;
+
+        previewCodeButton.SetActive(false);
+        CodePreview.gameObject.SetActive(false);
 
         InitNodeAddMenu();
     }
@@ -294,5 +299,16 @@ public class ScreenSpaceUI : MonoBehaviour
         temp.transform.position = new Vector2(Random.Range(-4f, 4f), Random.Range(-4f, 4f)); //prevent stacking of new nodes
 
         GraphController.staticReference.GraphNodes.Add(temp.GetComponent<GraphNode>()); //update the graph
+    }
+
+    //these two methods will be linked to the code preview button through the editor
+    public void showCodePreview() 
+    {
+        CodePreview.gameObject.SetActive(true);
+    }
+
+    public void hideCodePreview() 
+    {
+        CodePreview.gameObject.SetActive(false);
     }
 }
