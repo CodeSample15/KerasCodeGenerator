@@ -37,6 +37,12 @@ public class ScreenSpaceUI : MonoBehaviour
     private GameObject[] nodeSettings;
     private GameObject[] nodeSettingsMenuObjects;
 
+    private bool showingCodePrev;
+
+    public bool ShowingCodePrev {
+        get {return showingCodePrev; }
+    }
+
     void Awake() 
     {
         showingAddNodeMenu = false;
@@ -48,6 +54,8 @@ public class ScreenSpaceUI : MonoBehaviour
 
         previewCodeButton.SetActive(false);
         CodePreview.gameObject.SetActive(false);
+
+        showingCodePrev = false;
 
         InitNodeAddMenu();
     }
@@ -305,10 +313,12 @@ public class ScreenSpaceUI : MonoBehaviour
     public void showCodePreview() 
     {
         CodePreview.gameObject.SetActive(true);
+        showingCodePrev = true;
     }
 
     public void hideCodePreview() 
     {
         CodePreview.gameObject.SetActive(false);
+        showingCodePrev = false;
     }
 }

@@ -36,6 +36,10 @@ public class GraphController : MonoBehaviour
 
     public void CompileGraph() 
     {
+        //if the code preview window is open, ignore the compile button press
+        if(ScreenSpaceUI.staticRef.ShowingCodePrev)
+            return;
+
         //data structures and algorithms hell: (tracing a graph and appending the generated code in an order that makes sense)
 
         requiredLayers = new List<string>();
@@ -386,5 +390,10 @@ public class GraphController : MonoBehaviour
                 ScreenSpaceUI.staticRef.previewCodeButton.SetActive(false);
             }
         }
+    }
+
+    public void copyCodeToClipboard() {
+        GUIUtility.systemCopyBuffer = compiledCode;
+        compiledNotification.SetTrigger("Show");
     }
 }
