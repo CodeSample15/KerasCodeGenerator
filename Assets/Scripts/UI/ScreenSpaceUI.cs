@@ -304,7 +304,7 @@ public class ScreenSpaceUI : MonoBehaviour
         GameObject temp = Instantiate(node.gameObject, Vector2.zero, Quaternion.identity);
         temp.transform.SetParent(worldSpaceUI.transform, false);
 
-        temp.transform.position = new Vector2(Random.Range(-4f, 4f), Random.Range(-4f, 4f)); //prevent stacking of new nodes
+        temp.transform.position = new Vector2(Random.Range(-3.5f, 3.5f), Random.Range(-3.5f, 3.5f)); //prevent stacking of new nodes
 
         GraphController.staticReference.GraphNodes.Add(temp.GetComponent<GraphNode>()); //update the graph
     }
