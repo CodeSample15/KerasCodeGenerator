@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,6 +11,8 @@ using UnityEngine.UI;
 public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IComparable<GraphNode>
 {
     public int id = -1; //for keeping track of which node is in which model
+
+    public static bool nodeOnScreen; //for keeping track of whether or not there is a node currently in the user's perspective (used to determine whether or not the user might be lost in the graph)
 
     [Header("Cosmetic")]
 
@@ -126,6 +129,9 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
         }
         else
             curPosition = transform.position;
+
+        //check to see if the node is visible to the user
+        
 
         //handle when a new connection is made
         if(!draggingConnection) {
