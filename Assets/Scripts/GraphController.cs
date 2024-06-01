@@ -34,6 +34,39 @@ public class GraphController : MonoBehaviour
         ManageInteractivity();
     }
 
+    void LateUpdate()
+    {
+        ScanForOnScreenNodes();
+    }
+
+    public void ReturnToGraph() 
+    {
+        //find the nearest input node and travel to it
+        GraphNode travelTo = null;
+
+        foreach(GraphNode node in GraphNodes) {
+            if(node.NodeName.Equals("Input")) {
+                if(travelTo == null || node.transform.position.magnitude < travelTo.transform.position.magnitude) {
+                    travelTo = node;
+                }
+            }
+        }
+
+        //if there are no input nodes, just travel to the closest node
+        if(travelTo == null) {
+            foreach(GraphNode node in GraphNodes) {
+                if(travelTo == null || node.transform.position.magnitude < travelTo.transform.position.magnitude) {
+                    travelTo = node;
+                }
+            }
+        }
+
+        //move all nodes over in the graph so the camera is looking at the graph
+        foreach(GraphNode node in GraphNodes) {
+            node.transform.position -= travelTo.transform.position;
+        }
+    }
+
     public void CompileGraph() 
     {
         //if the code preview window is open, ignore the compile button press
@@ -41,6 +74,7 @@ public class GraphController : MonoBehaviour
             return;
 
         //data structures and algorithms hell: (tracing a graph and appending the generated code in an order that makes sense)
+        //combination of BFS and DFS :D
 
         requiredLayers = new List<string>();
         
@@ -390,6 +424,24 @@ public class GraphController : MonoBehaviour
                 ScreenSpaceUI.staticRef.previewCodeButton.SetActive(false);
             }
         }
+    }
+
+    private void ScanForOnScreenNodes() 
+    {
+        //scan for nodes in the graph that are on screen and if there are none, show the "return to graph" button to save the user from getting lost in the infinite void
+        bool onScreen = GraphNodes.Count == 0;
+        
+        foreach(GraphNode node in GraphNodes) {
+            if(node.NodeOnScreen) {
+                onScreen = true;
+                break;
+            }
+        }
+
+        if(onScreen)
+            ScreenSpaceUI.staticRef.returnToGraphButton.SetActive(false);
+        else
+            ScreenSpaceUI.staticRef.returnToGraphButton.SetActive(true);
     }
 
     public void copyCodeToClipboard() {

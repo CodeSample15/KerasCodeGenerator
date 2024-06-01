@@ -25,8 +25,9 @@ public class ScreenSpaceUI : MonoBehaviour
     [SerializeField] private GameObject OptionsMenu;
     [SerializeField] private GameObject OptionsMenuSettingsGrid;
     [SerializeField] private TextMeshProUGUI OptionsMenuTitle;
-    public GameObject previewCodeButton; //this and the code preview will be accessed by the GraphController and GraphNode. Just putting the references here for organization
+    public GameObject previewCodeButton; //this, the code preview, and return to graph button, will be accessed by the GraphController and GraphNode. Just putting the references here for organization
     public TMP_InputField CodePreview;
+    public GameObject returnToGraphButton;
 
 
     [Header("Animations:")]

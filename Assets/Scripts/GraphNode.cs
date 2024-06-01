@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -11,8 +10,6 @@ using UnityEngine.UI;
 public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IComparable<GraphNode>
 {
     public int id = -1; //for keeping track of which node is in which model
-
-    public static bool nodeOnScreen; //for keeping track of whether or not there is a node currently in the user's perspective (used to determine whether or not the user might be lost in the graph)
 
     [Header("Cosmetic")]
 
@@ -52,7 +49,6 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
     [HideInInspector] public GameObject lineHolder; //to hold a new line when one is drawn
 
-
     private Button MainButton;
     private Button OptionsButton;
     private TextMeshProUGUI descriptionText;
@@ -69,6 +65,10 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
     [HideInInspector] public bool editing;
     private GameObject draggedConnectionFROM; //the origin of the new connection
     private GameObject draggedConnecitonTO; //this is more of a temp object for the button that's going to follow the mouse
+
+    private bool nodeOnScreen; //for keeping track of whether or not there is a node currently in the user's perspective (used to determine whether or not the user might be lost in the graph)
+    public bool NodeOnScreen { get{return nodeOnScreen; } }
+    private Vector2 screenBuffer; //add some buffer to make sure the node goes completely off screen
 
     public static string[] possibleActivations = {"relu", "linear", "tanh", "sigmoid"}; //leaky relu is going to be an actual layer
 
@@ -105,6 +105,9 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
 
         Transform tempTextHolder = transform.Find("Info Box");
         descriptionText = tempTextHolder != null ? tempTextHolder.GetComponent<TextMeshProUGUI>() : null;
+
+        nodeOnScreen = true;
+        screenBuffer = new Vector2(2.1f, 1.6f);
     }
 
     void Start() 
@@ -131,7 +134,8 @@ public class GraphNode : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, 
             curPosition = transform.position;
 
         //check to see if the node is visible to the user
-        
+        Vector2 screenDim = (Vector2)Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height)) + screenBuffer;
+        nodeOnScreen = Mathf.Abs(transform.position.x) < screenDim.x && Mathf.Abs(transform.position.y) < screenDim.y;
 
         //handle when a new connection is made
         if(!draggingConnection) {
