@@ -289,6 +289,7 @@ public class ScreenSpaceUI : MonoBehaviour
             GameObject temp = Instantiate(addNodeMenuButtonTemplate, Vector2.zero, Quaternion.identity);
             temp.GetComponentInChildren<TextMeshProUGUI>().SetText(n.NodeName);
             temp.GetComponent<Button>().onClick.AddListener(() => addNewNodeToGraph(n));
+            temp.GetComponent<Image>().color = n.GetComponent<Image>().color;
 
             //add button to scrollable menu
             temp.transform.SetParent(addNodeMenuListObject.transform, false);
