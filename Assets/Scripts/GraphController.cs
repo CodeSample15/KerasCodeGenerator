@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 public class GraphController : MonoBehaviour
@@ -37,6 +39,35 @@ public class GraphController : MonoBehaviour
     void LateUpdate()
     {
         ScanForOnScreenNodes();
+    }
+
+    public void SaveGraph(string name) 
+    {
+        BinaryFormatter formatter = new BinaryFormatter();
+        string path = Application.persistentDataPath + "/" + name + ".kcgg"; //kcgg = keras code generator graph
+        FileStream stream = new FileStream(path, FileMode.Create);
+
+        GraphState data = new GraphState(GraphNodes);
+        formatter.Serialize(stream, data);
+        stream.Close();
+    }
+
+    public void LoadGraph(string name) 
+    {
+        string path = Application.persistentDataPath + "/" + name + ".kcgg";
+
+        if(File.Exists(path)) 
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            FileStream stream = new FileStream(path, FileMode.Open);
+
+            GraphState data = formatter.Deserialize(stream) as GraphState;
+            stream.Close();
+        }
+        else
+        {
+            Debug.LogError("Failed to open graph file! File not found.");
+        }
     }
 
     public void ReturnToGraph() 
@@ -297,7 +328,8 @@ public class GraphController : MonoBehaviour
                 if(inputN != null)
                     inputN.id = id; //link input node to the rest of the model
 
-                if(inputN == null || !canBeTracedUpToInput(inputN, id)) {
+                List<GraphNode> traversedNodes = new List<GraphNode>();
+                if(inputN == null || !canBeTracedUpToInput(inputN, id, traversedNodes)) {
                     reasonForFailing = "Incomplete graph (Concatenate doesn't have all inputs satisfied)";
                     return false;
                 }
@@ -324,7 +356,7 @@ public class GraphController : MonoBehaviour
         return canBeCompiled(node.OutputConnections[0], id);
     }
 
-    private bool canBeTracedUpToInput(GraphNode node, int sourceID) 
+    private bool canBeTracedUpToInput(GraphNode node, int sourceID, List<GraphNode> traversedNodes) 
     {
         if(node == null)
             return false;
@@ -333,11 +365,12 @@ public class GraphController : MonoBehaviour
 
         bool canBeTraced = true;
         foreach(GraphNode inputN in node.InputConnections) {
-            if(inputN == null)
+            if(inputN == null || traversedNodes.Contains(inputN))
                 return false;
 
+            traversedNodes.Add(inputN);
             inputN.id = sourceID;
-            canBeTraced = canBeTraced && canBeTracedUpToInput(inputN, sourceID);
+            canBeTraced = canBeTraced && canBeTracedUpToInput(inputN, sourceID, traversedNodes);
         }
 
         return canBeTraced;
