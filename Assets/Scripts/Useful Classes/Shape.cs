@@ -1,3 +1,5 @@
+
+[System.Serializable]
 public class Shape
 {
     public int[] sizes;

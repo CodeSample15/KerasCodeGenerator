@@ -8,7 +8,7 @@ public class ScreenSpaceUI : MonoBehaviour
     public static ScreenSpaceUI staticRef;
 
     [Header("Prefabs:")]
-    [SerializeField] private List<GraphNode> possibleNodes; //possible nodes that can be added to the graph (basically all of the nodes that I've implemented so far)
+    [SerializeField] public List<GraphNode> possibleNodes; //possible nodes that can be added to the graph (basically all of the nodes that I've implemented so far)
     [SerializeField] private GameObject addNodeMenuButtonTemplate;
     [SerializeField] private TextMeshProUGUI LabelText;
     [SerializeField] private GameObject checkBox;
@@ -20,7 +20,7 @@ public class ScreenSpaceUI : MonoBehaviour
 
 
     [Header("In scene objects:")]
-    [SerializeField] private GameObject worldSpaceUI;
+    [SerializeField] public GameObject worldSpaceUI;
     [SerializeField] private GameObject addNodeMenuListObject;
     [SerializeField] private GameObject OptionsMenu;
     [SerializeField] private GameObject OptionsMenuSettingsGrid;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
+using UnityEditor;
 
 public class GraphController : MonoBehaviour
 {
@@ -12,6 +13,10 @@ public class GraphController : MonoBehaviour
     //for notifying the user of their code generation status
     [SerializeField] private Animator compiledNotification;
     [SerializeField] private Animator failedNotification;
+
+    [Space]
+
+    [SerializeField] private FancyLine fancyLinePrefab;
 
     public List<GraphNode> GraphNodes;
 
@@ -41,27 +46,38 @@ public class GraphController : MonoBehaviour
         ScanForOnScreenNodes();
     }
 
-    public void SaveGraph(string name) 
+    public void SaveGraph() 
     {
+        string dir = EditorUtility.SaveFilePanel("Select Directory", "", "graph.kcgg", "kcgg"); //kcgg = keras code generator graph
+
         BinaryFormatter formatter = new BinaryFormatter();
-        string path = Application.persistentDataPath + "/" + name + ".kcgg"; //kcgg = keras code generator graph
-        FileStream stream = new FileStream(path, FileMode.Create);
+        FileStream stream = new FileStream(dir, FileMode.Create);
 
         GraphState data = new GraphState(GraphNodes);
         formatter.Serialize(stream, data);
         stream.Close();
     }
 
-    public void LoadGraph(string name) 
+    public void LoadGraph() 
     {
-        string path = Application.persistentDataPath + "/" + name + ".kcgg";
+        string dir = EditorUtility.OpenFilePanel("Select graph file:", "", "kcgg");
 
-        if(File.Exists(path)) 
+        if(File.Exists(dir)) 
         {
             BinaryFormatter formatter = new BinaryFormatter();
-            FileStream stream = new FileStream(path, FileMode.Open);
+            FileStream stream = new FileStream(dir, FileMode.Open);
 
             GraphState data = formatter.Deserialize(stream) as GraphState;
+
+            //restore graph
+            if(GraphNodes.Count == 0) {
+                restoreGraph(data);
+            }
+            else {
+                //graph isn't empty, prompt to ask the user to save
+
+            }
+
             stream.Close();
         }
         else
@@ -480,5 +496,99 @@ public class GraphController : MonoBehaviour
     public void copyCodeToClipboard() {
         GUIUtility.systemCopyBuffer = compiledCode;
         compiledNotification.SetTrigger("Show");
+    }
+
+    private void restoreGraph(GraphState state) 
+    {
+        //clear existing graph
+        for(int i=0; i<GraphNodes.Count; i++) {
+            GraphNodes[0].Delete();
+            GraphNodes.RemoveAt(0);
+        }
+
+        //instantiate nodes from graph node
+        foreach(SerializedGraphNode node in state.nodes) {
+            GameObject toInstantiate = getPrefabForNodeName(node.type);
+
+            if(toInstantiate != null) {
+                GameObject temp = Instantiate(toInstantiate, Vector2.zero, Quaternion.identity);
+                temp.transform.SetParent(ScreenSpaceUI.staticRef.worldSpaceUI.transform, false);
+                temp.transform.position = new Vector2(node.posX, node.posY);
+
+                GraphNodes.Add(temp.GetComponent<GraphNode>());
+
+                //fill in data
+                TransferSettings(node, temp.GetComponent<GraphNode>());
+            }
+            else {
+                Debug.LogError("Error loading graph node type.");
+            }
+        }
+
+        //create connections
+        int index = 0;
+        int conIndex; //connection index
+        foreach(SerializedGraphNode node in state.nodes) {
+            conIndex = 0;
+            foreach(int inputID in node.Inputs) {
+                if(inputID != -1) {
+                    GraphNodes[index].InputConnections[conIndex] = GraphNodes[inputID];
+                }
+
+                conIndex++;
+            }
+
+            conIndex = 0;
+            foreach(int outputID in node.Outputs) {
+                if(outputID != -1) {
+                    GraphNodes[index].OutputConnections[conIndex] = GraphNodes[outputID];
+                }
+
+                conIndex++;
+            }
+
+            index++;
+        }
+
+        //create line connection visuals
+        FancyLine lineHolder;
+
+        foreach(GraphNode node in GraphNodes) {
+            foreach(GraphNode input in node.InputConnections) {
+                if(input != null) {
+
+                }
+            }
+        }
+
+        // lineHolder = Instantiate(fancyLinePrefab, Vector2.zero, Quaternion.identity);
+        // lineHolder.StartPos = GraphNodes[index].NodeOutputs[conIndex];
+        // lineHolder.EndPos = GraphNodes[outputID].NodeOutputs[conIndex];
+    }
+
+    private GameObject getPrefabForNodeName(string name) 
+    {
+        GameObject found = null;
+        foreach(GraphNode node in ScreenSpaceUI.staticRef.possibleNodes) {
+            if(node.NodeName.Equals(name)) {
+                found = node.gameObject;
+                break;
+            }
+        }
+
+        return found;
+    }
+
+    //transfers data from a serialized node to a regular graph node
+    private void TransferSettings(SerializedGraphNode from, GraphNode to) {
+        to.inputShape = from.inputShape;
+        to.units = from.units;
+        to.activation = from.activation;
+        to.dropout = from.dropout;
+        to.kernelShape = from.kernelShape;
+        to.strides = from.strides;
+        to.returnSequences = from.returnSequences;
+        to.returnState = from.returnState;
+        to.recurrentDropout = from.recurrentDropout;
     }
 }
