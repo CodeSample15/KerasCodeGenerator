@@ -5,6 +5,8 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Networking;
+using UnityEngine.Assertions;
 
 public class GraphController : MonoBehaviour
 {
@@ -552,18 +554,59 @@ public class GraphController : MonoBehaviour
 
         //create line connection visuals
         FancyLine lineHolder;
-
+        List<int[]> madeConnections = new List<int[]>();
+        
+        index = 0; //to keep track of the index of the current node in the below foreach loop
         foreach(GraphNode node in GraphNodes) {
+            conIndex = 0;
             foreach(GraphNode input in node.InputConnections) {
-                if(input != null) {
+                int[] connectionQuery = {index, GraphNodes.IndexOf(input)};
 
+                if(input != null && !findConnectionMatch(madeConnections, connectionQuery)) {
+                    int outputIndex = state.nodes[GraphNodes.IndexOf(input)].Outputs.IndexOf(index);//the index of the connection coming out of the node that's feeding as input to this node
+
+                    lineHolder = Instantiate(fancyLinePrefab, Vector2.zero, Quaternion.identity);
+                    lineHolder.StartPos = node.NodeInputs[conIndex];
+                    lineHolder.EndPos = input.NodeOutputs[outputIndex].gameObject;
+
+                    madeConnections.Add(connectionQuery); //mark the connection as created to avoid duplicate connections
                 }
+
+                conIndex++;
+            }
+
+            conIndex = 0;
+            foreach(GraphNode output in node.OutputConnections) {
+                int[] connectionQuery = {index, GraphNodes.IndexOf(output)};
+
+                if(output != null && !findConnectionMatch(madeConnections, connectionQuery)) {
+                    int inputIndex = state.nodes[GraphNodes.IndexOf(output)].Inputs.IndexOf(index);//the index of the connection going into the node that's taking the output of this node
+
+                    lineHolder = Instantiate(fancyLinePrefab, Vector2.zero, Quaternion.identity);
+                    lineHolder.StartPos = node.NodeOutputs[conIndex];
+                    lineHolder.EndPos = output.NodeInputs[inputIndex].gameObject;
+
+                    madeConnections.Add(connectionQuery); //mark the connection as created to avoid duplicate connections
+                }
+
+                conIndex++;
+            }
+
+            index++;
+        }
+    }
+
+    private bool findConnectionMatch(List<int[]> list, int[] query) {
+        bool found = false;
+
+        foreach(int[] pair in list) {
+            if((query[0] == pair[0] && query[1] == pair[1]) || (query[0] == pair[1] && query[1] == pair[0])) {
+                found = true;
+                break;
             }
         }
 
-        // lineHolder = Instantiate(fancyLinePrefab, Vector2.zero, Quaternion.identity);
-        // lineHolder.StartPos = GraphNodes[index].NodeOutputs[conIndex];
-        // lineHolder.EndPos = GraphNodes[outputID].NodeOutputs[conIndex];
+        return found;
     }
 
     private GameObject getPrefabForNodeName(string name) 

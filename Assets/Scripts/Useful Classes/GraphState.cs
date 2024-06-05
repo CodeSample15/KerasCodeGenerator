@@ -29,11 +29,9 @@ public class GraphState
             foreach(GraphNode input in node.InputConnections) {
                 if(nodes.Contains(input)) {
                     this.nodes[index].Inputs.Add(nodes.IndexOf(input)); //nodes.IndexOf(input) should be the ID of the input node saved in the serialized graph node
-                    this.nodes[index].InputIndexes.Add(conIndex);
                 }
                 else {
                     this.nodes[index].Inputs.Add(-1);
-                    this.nodes[index].InputIndexes.Add(-1);
                 }
 
                 conIndex++;
@@ -43,11 +41,9 @@ public class GraphState
             foreach(GraphNode output in node.OutputConnections) {
                 if(nodes.Contains(output)) {
                     this.nodes[index].Outputs.Add(nodes.IndexOf(output));
-                    this.nodes[index].OutputIndexes.Add(conIndex);
                 }
                 else {
                     this.nodes[index].Outputs.Add(-1);
-                    this.nodes[index].OutputIndexes.Add(-1);
                 }
 
                 conIndex++;

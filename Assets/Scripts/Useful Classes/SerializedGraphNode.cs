@@ -22,9 +22,7 @@ public class SerializedGraphNode
     public float recurrentDropout;
 
     public List<int> Inputs;
-    public List<int> InputIndexes;
     public List<int> Outputs;
-    public List<int> OutputIndexes;
 
     public SerializedGraphNode(GraphNode node) {
         posX = node.transform.position.x;
