@@ -31,6 +31,8 @@ public class GraphController : MonoBehaviour
 
     private string reasonForFailing = "";
 
+    private GraphState loadedState; //for temporarily storing loaded states from a file
+
     void Awake() 
     {
         compiledCode = "";
@@ -63,6 +65,7 @@ public class GraphController : MonoBehaviour
     public void LoadGraph() 
     {
         string dir = EditorUtility.OpenFilePanel("Select graph file:", "", "kcgg");
+        loadedState = null; //just in case, get rid of any state previously loaded in memory
 
         if(File.Exists(dir)) 
         {
@@ -77,7 +80,8 @@ public class GraphController : MonoBehaviour
             }
             else {
                 //graph isn't empty, prompt to ask the user to save
-
+                loadedState = data; //store in a global field for later use
+                ScreenSpaceUI.staticRef.loadWarning.SetActive(true);
             }
 
             stream.Close();
@@ -113,6 +117,14 @@ public class GraphController : MonoBehaviour
         //move all nodes over in the graph so the camera is looking at the graph
         foreach(GraphNode node in GraphNodes) {
             node.transform.position -= travelTo.transform.position;
+        }
+    }
+
+    public void IgnoreWarningLoadGraph() //for ui buttons to access
+    {
+        if(loadedState != null) {
+            restoreGraph(loadedState);
+            ScreenSpaceUI.staticRef.hideLoadWarning();
         }
     }
 
@@ -503,9 +515,9 @@ public class GraphController : MonoBehaviour
     private void restoreGraph(GraphState state) 
     {
         //clear existing graph
-        for(int i=0; i<GraphNodes.Count; i++) {
+        int numNodes = GraphNodes.Count;
+        for(int i=0; i<numNodes; i++) {
             GraphNodes[0].Delete();
-            GraphNodes.RemoveAt(0);
         }
 
         //instantiate nodes from graph node

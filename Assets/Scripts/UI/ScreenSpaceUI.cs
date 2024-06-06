@@ -25,9 +25,10 @@ public class ScreenSpaceUI : MonoBehaviour
     [SerializeField] private GameObject OptionsMenu;
     [SerializeField] private GameObject OptionsMenuSettingsGrid;
     [SerializeField] private TextMeshProUGUI OptionsMenuTitle;
-    public GameObject previewCodeButton; //this, the code preview, and return to graph button, will be accessed by the GraphController and GraphNode. Just putting the references here for organization
+    public GameObject previewCodeButton; //this, and all the other public fields, will be accessed by the GraphController and GraphNode. Just putting the references here for organization
     public TMP_InputField CodePreview;
     public GameObject returnToGraphButton;
+    public GameObject loadWarning; //the thing that warns the user that their currently open graph will be deleted if they try to load one from file
 
 
     [Header("Animations:")]
@@ -57,6 +58,8 @@ public class ScreenSpaceUI : MonoBehaviour
         CodePreview.gameObject.SetActive(false);
 
         showingCodePrev = false;
+
+        loadWarning.SetActive(false);
 
         InitNodeAddMenu();
     }
@@ -322,5 +325,10 @@ public class ScreenSpaceUI : MonoBehaviour
     {
         CodePreview.gameObject.SetActive(false);
         showingCodePrev = false;
+    }
+
+    //will be linked to the cancel button on the load warning gameobject (referenced in this file)
+    public void hideLoadWarning() {
+        loadWarning.SetActive(false);
     }
 }
