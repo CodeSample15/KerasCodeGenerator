@@ -5,8 +5,6 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.Networking;
-using UnityEngine.Assertions;
 
 public class GraphController : MonoBehaviour
 {
