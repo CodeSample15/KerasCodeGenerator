@@ -577,7 +577,11 @@ public class GraphController : MonoBehaviour
 
                     lineHolder = Instantiate(fancyLinePrefab, Vector2.zero, Quaternion.identity);
                     lineHolder.StartPos = node.NodeInputs[conIndex];
-                    lineHolder.EndPos = input.NodeOutputs[outputIndex].gameObject;
+                    lineHolder.EndPos = input.NodeOutputs[outputIndex];
+
+                    //update line holders in connection dots (allows for lines to be updated correctly when connections are changed in graph)
+                    node.NodeInputs[conIndex].GetComponent<GraphConnector>().addConnection(lineHolder);
+                    input.NodeOutputs[outputIndex].GetComponent<GraphConnector>().addConnection(lineHolder);
 
                     madeConnections.Add(connectionQuery); //mark the connection as created to avoid duplicate connections
                 }
@@ -594,7 +598,11 @@ public class GraphController : MonoBehaviour
 
                     lineHolder = Instantiate(fancyLinePrefab, Vector2.zero, Quaternion.identity);
                     lineHolder.StartPos = node.NodeOutputs[conIndex];
-                    lineHolder.EndPos = output.NodeInputs[inputIndex].gameObject;
+                    lineHolder.EndPos = output.NodeInputs[inputIndex];
+
+                    //update line holders in connection dots (allows for lines to be updated correctly when connections are changed in graph)
+                    node.NodeOutputs[conIndex].GetComponent<GraphConnector>().addConnection(lineHolder);
+                    output.NodeInputs[inputIndex].GetComponent<GraphConnector>().addConnection(lineHolder);
 
                     madeConnections.Add(connectionQuery); //mark the connection as created to avoid duplicate connections
                 }
