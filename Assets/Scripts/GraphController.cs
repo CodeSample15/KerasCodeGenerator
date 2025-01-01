@@ -1,10 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
-using UnityEditor;
+using System.Windows.Forms;
 
 public class GraphController : MonoBehaviour
 {
@@ -50,7 +49,9 @@ public class GraphController : MonoBehaviour
 
     public void SaveGraph() 
     {
-        string dir = EditorUtility.SaveFilePanel("Select Directory", "", "graph.kcgg", "kcgg"); //kcgg = keras code generator graph
+        string dir = getFilePath(true);
+        if(dir.Equals(""))
+            return;
 
         BinaryFormatter formatter = new BinaryFormatter();
         FileStream stream = new FileStream(dir, FileMode.Create);
@@ -62,7 +63,10 @@ public class GraphController : MonoBehaviour
 
     public void LoadGraph() 
     {
-        string dir = EditorUtility.OpenFilePanel("Select graph file:", "", "kcgg");
+        string dir = getFilePath(false);
+        if(dir.Equals(""))
+            return;
+            
         loadedState = null; //just in case, get rid of any state previously loaded in memory
 
         if(File.Exists(dir)) 
@@ -111,7 +115,7 @@ public class GraphController : MonoBehaviour
                 }
             }
         }
-
+        
         //move all nodes over in the graph so the camera is looking at the graph
         foreach(GraphNode node in GraphNodes) {
             node.transform.position -= travelTo.transform.position;
@@ -651,5 +655,26 @@ public class GraphController : MonoBehaviour
         to.returnSequences = from.returnSequences;
         to.returnState = from.returnState;
         to.recurrentDropout = from.recurrentDropout;
+    }
+    
+    private string getFilePath(bool save) {
+        FileDialog fd;
+        if(save)
+            fd = new SaveFileDialog();
+        else
+            fd = new OpenFileDialog();
+
+        string path = "";
+
+        fd.Filter = "Graph files (*.kcgg) | *.kcgg";
+        fd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        fd.FilterIndex = 0;
+        fd.RestoreDirectory = true;
+
+        if(fd.ShowDialog() == DialogResult.OK)
+            path = fd.FileName;
+
+        fd.Dispose();
+        return path;
     }
 }
